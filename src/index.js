@@ -1,1 +1,6 @@
-export { processMotionEvent } from "./motion-hash.js";
+export {
+  processMotionEvent,
+  generateMotionRandomNumber,
+  generateMotionRandomNumberNormalized,
+  processMotionEventWithRandom
+} from "./motion-hash.js";

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { processMotionEvent } from "../src/index.js";
+import {
+  generateMotionRandomNumber,
+  generateMotionRandomNumberNormalized,
+  processMotionEvent,
+  processMotionEventWithRandom
+} from "../src/index.js";
 
 function createMockEvent(overrides = {}) {
   return {
@@ -59,5 +64,52 @@ describe("processMotionEvent", () => {
     await expect(processMotionEvent(undefined)).rejects.toThrow("Invalid motion event");
     await expect(processMotionEvent(null)).rejects.toThrow("Invalid motion event");
     await expect(processMotionEvent(42)).rejects.toThrow("Invalid motion event");
+  });
+});
+
+describe("generateMotionRandomNumber", () => {
+  it("returns a single bigint random number", async () => {
+    const randomNumber = await generateMotionRandomNumber(createMockEvent());
+
+    expect(typeof randomNumber).toBe("bigint");
+    expect(randomNumber >= 0n).toBe(true);
+  });
+
+  it("is deterministic for identical input", async () => {
+    const event = createMockEvent();
+
+    const first = await generateMotionRandomNumber(event);
+    const second = await generateMotionRandomNumber(event);
+
+    expect(first).toBe(second);
+  });
+
+  it("changes when timestamp hash source changes", async () => {
+    const base = await generateMotionRandomNumber(createMockEvent({ timeStamp: 100.0 }));
+    const changed = await generateMotionRandomNumber(createMockEvent({ timeStamp: 100.0001 }));
+
+    expect(base).not.toBe(changed);
+  });
+});
+
+describe("generateMotionRandomNumberNormalized", () => {
+  it("returns a normalized number in [0, 1)", async () => {
+    const randomNumber = await generateMotionRandomNumberNormalized(createMockEvent());
+
+    expect(typeof randomNumber).toBe("number");
+    expect(Number.isFinite(randomNumber)).toBe(true);
+    expect(randomNumber).toBeGreaterThanOrEqual(0);
+    expect(randomNumber).toBeLessThan(1);
+  });
+});
+
+describe("processMotionEventWithRandom", () => {
+  it("returns hashedData, bigint randomNumber and normalized randomNumber in one response", async () => {
+    const result = await processMotionEventWithRandom(createMockEvent());
+
+    expect(typeof result.randomNumber).toBe("bigint");
+    expect(typeof result.randomNumberNormalized).toBe("number");
+    expect(result.hashedData).toHaveProperty("timestamp");
+    expect(result.hashedData).toHaveProperty("rotationRate");
   });
 });

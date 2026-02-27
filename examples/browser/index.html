@@ -23,7 +23,7 @@
     </main>
 
     <script type="module">
-      import { processMotionEvent } from "../../src/index.js";
+      import { processMotionEventWithRandom } from "../../src/index.js";
 
       const startButton = document.getElementById("start");
       const stopButton = document.getElementById("stop");
@@ -40,8 +40,16 @@
         processing = true;
 
         try {
-          const hashedData = await processMotionEvent(event);
-          output.textContent = JSON.stringify(hashedData, null, 2);
+          const result = await processMotionEventWithRandom(event);
+          output.textContent = JSON.stringify(
+            {
+              randomNumber: result.randomNumber.toString(),
+              randomNumberNormalized: result.randomNumberNormalized,
+              hashedData: result.hashedData
+            },
+            null,
+            2
+          );
         } catch (error) {
           setStatus(`ハッシュ化失敗: ${error instanceof Error ? error.message : String(error)}`);
         } finally {

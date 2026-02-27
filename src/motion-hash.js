@@ -42,6 +42,12 @@ async function hashText(text) {
   return toHex(digest);
 }
 
+async function hashText512(text) {
+  const encoded = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-512", encoded);
+  return toHex(digest);
+}
+
 function getNullHash() {
   if (!nullHashPromise) {
     nullHashPromise = hashText(NULL_TOKEN);
@@ -93,6 +99,43 @@ function extractRawMotionData(event) {
   };
 }
 
+function collectHashLeaves(value, path = "", output = []) {
+  if (typeof value === "string") {
+    output.push([path, value]);
+    return output;
+  }
+
+  if (!value || typeof value !== "object") {
+    return output;
+  }
+
+  const keys = Object.keys(value).sort();
+  for (const key of keys) {
+    const nextPath = path ? `${path}.${key}` : key;
+    collectHashLeaves(value[key], nextPath, output);
+  }
+
+  return output;
+}
+
+async function combineHashesToRandomBigInt(hashedData) {
+  const leaves = collectHashLeaves(hashedData);
+
+  if (leaves.length === 0) {
+    throw new TypeError("Invalid hashed motion data");
+  }
+
+  const material = leaves.map(([path, hash]) => `${path}:${hash}`).join("|");
+  const combinedHash = await hashText512(material);
+  return BigInt(`0x${combinedHash}`);
+}
+
+function toNormalizedRandomNumber(randomBigInt) {
+  const maxInt = 1n << 53n;
+  const randomInt = randomBigInt % maxInt;
+  return Number(randomInt) / Number(maxInt);
+}
+
 export async function processMotionEvent(event) {
   if (!event || typeof event !== "object") {
     throw new TypeError("Invalid motion event");
@@ -100,4 +143,26 @@ export async function processMotionEvent(event) {
 
   const rawData = extractRawMotionData(event);
   return hashValue(rawData);
+}
+
+export async function generateMotionRandomNumber(event) {
+  const hashedData = await processMotionEvent(event);
+  return combineHashesToRandomBigInt(hashedData);
+}
+
+export async function generateMotionRandomNumberNormalized(event) {
+  const randomBigInt = await generateMotionRandomNumber(event);
+  return toNormalizedRandomNumber(randomBigInt);
+}
+
+export async function processMotionEventWithRandom(event) {
+  const hashedData = await processMotionEvent(event);
+  const randomNumber = await combineHashesToRandomBigInt(hashedData);
+  const randomNumberNormalized = toNormalizedRandomNumber(randomNumber);
+
+  return {
+    hashedData,
+    randomNumber,
+    randomNumberNormalized
+  };
 }

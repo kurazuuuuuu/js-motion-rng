@@ -18,11 +18,13 @@ npm install js-motion-rng
 ## Usage
 
 ```js
-import { processMotionEvent } from "js-motion-rng";
+import { processMotionEventWithRandom } from "js-motion-rng";
 
 window.addEventListener("devicemotion", async (event) => {
-  const hashed = await processMotionEvent(event);
-  console.log(hashed);
+  const { randomNumber, randomNumberNormalized, hashedData } = await processMotionEventWithRandom(event);
+  console.log(randomNumber.toString()); // BigInt
+  console.log(randomNumberNormalized); // number in [0, 1)
+  console.log(hashedData);
 });
 ```
 
@@ -39,6 +41,23 @@ Returns a Promise of:
 - `rotationRate`
 
 All output values are SHA-256 hash strings.
+
+### `generateMotionRandomNumber(event)`
+
+Uses all hashes generated from the motion payload (including timestamp-derived hash),
+combines them, and returns one `BigInt` random number.
+
+### `generateMotionRandomNumberNormalized(event)`
+
+Returns a normalized `number` in `[0, 1)` derived from the `BigInt` random number.
+
+### `processMotionEventWithRandom(event)`
+
+Returns both values in one call:
+
+- `hashedData`
+- `randomNumber` (`BigInt`)
+- `randomNumberNormalized` (`number`, `[0, 1)`)
 
 ## Test
 
