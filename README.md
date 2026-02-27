@@ -1,30 +1,35 @@
 # js-motion-rng
 
-DeviceMotionEvent data processor for browsers.
+> [!NOTE]
+> 思いつきをCodexで具現化したやつです。実用性については知りません。
 
-## Features
+ブラウザ向けの `DeviceMotionEvent` データ処理ライブラリです。
 
-- Extracts motion payload from `DeviceMotionEvent`
-- Applies logistic-map chaos transform to numeric fields
-- Hashes all values with SHA-256
-- Converts `null` to a stable hash token
+## 機能
 
-## Install
+- `DeviceMotionEvent` からモーションデータを抽出
+- 数値フィールドにロジスティック写像ベースのカオス変換を適用
+- すべての値を SHA-256 でハッシュ化
+- `null` は固定トークン由来の安定ハッシュへ変換
+- 抽出した全ハッシュを統合し、単一の乱数（`BigInt`）を生成
+
+## インストール
 
 ```bash
 npm install js-motion-rng
 ```
 
-## Usage
+## 使い方
 
 ```js
 import { processMotionEventWithRandom } from "js-motion-rng";
 
 window.addEventListener("devicemotion", async (event) => {
   const { randomNumber, randomNumberNormalized, hashedData } = await processMotionEventWithRandom(event);
+
   console.log(randomNumber.toString()); // BigInt
-  console.log(randomNumberNormalized); // number in [0, 1)
-  console.log(hashedData);
+  console.log(randomNumberNormalized); // [0, 1) の number
+  console.log(hashedData); // ハッシュ化済みデータ
 });
 ```
 
@@ -32,7 +37,7 @@ window.addEventListener("devicemotion", async (event) => {
 
 ### `processMotionEvent(event)`
 
-Returns a Promise of:
+`DeviceMotionEvent` を入力として、以下を含むハッシュ化済みオブジェクトを返します。
 
 - `timestamp`
 - `interval`
@@ -40,35 +45,36 @@ Returns a Promise of:
 - `accelerationIncludingGravity`
 - `rotationRate`
 
-All output values are SHA-256 hash strings.
+返却される各値は SHA-256 ハッシュ文字列です。
 
 ### `generateMotionRandomNumber(event)`
 
-Uses all hashes generated from the motion payload (including timestamp-derived hash),
-combines them, and returns one `BigInt` random number.
+モーションデータから生成した全ハッシュ（タイムスタンプ由来ハッシュを含む）を統合し、
+単一の `BigInt` 乱数を返します。
 
 ### `generateMotionRandomNumberNormalized(event)`
 
-Returns a normalized `number` in `[0, 1)` derived from the `BigInt` random number.
+`generateMotionRandomNumber` の結果から導出した、`[0, 1)` 範囲の `number` を返します。
 
 ### `processMotionEventWithRandom(event)`
 
-Returns both values in one call:
+1回の呼び出しで以下を返します。
 
 - `hashedData`
-- `randomNumber` (`BigInt`)
-- `randomNumberNormalized` (`number`, `[0, 1)`)
+- `randomNumber`（`BigInt`）
+- `randomNumberNormalized`（`number`, `[0, 1)`）
 
-## Test
+## テスト
 
 ```bash
 npm test
 ```
 
-## Browser Example
+## ブラウザ実行例
 
 ```bash
 npm run example:serve
 ```
 
-Then open the served page and grant motion permission on your device.
+`examples/browser/index.html` をローカルサーバー経由で開き、
+デバイスモーションの権限を許可して動作を確認してください。
