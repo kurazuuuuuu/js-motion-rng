@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeviceMotionEvent Viewer</title>
+  </head>
+  <body>
+    <main>
+      <h1>DeviceMotionEvent データ表示</h1>
+      <p>
+        ボタンを押すと、<code>window.ondevicemotion</code> で取得できる値をリアルタイム表示します。
+      </p>
+      <p>※ モバイル端末・HTTPS環境での動作を推奨します。</p>
+
+      <div class="controls">
+        <button id="start" type="button">取得開始</button>
+        <button id="stop" type="button" disabled>停止</button>
+      </div>
+
+      <p id="status">状態: 待機中</p>
+      <pre id="output">まだデータはありません。</pre>
+    </main>
+
+    <script type="module">
+      import { processMotionEvent } from "../../src/index.js";
+
+      const startButton = document.getElementById("start");
+      const stopButton = document.getElementById("stop");
+      const statusText = document.getElementById("status");
+      const output = document.getElementById("output");
+
+      let listening = false;
+      let processing = false;
+
+      async function onDeviceMotion(event) {
+        if (processing) {
+          return;
+        }
+        processing = true;
+
+        try {
+          const hashedData = await processMotionEvent(event);
+          output.textContent = JSON.stringify(hashedData, null, 2);
+        } catch (error) {
+          setStatus(`ハッシュ化失敗: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+          processing = false;
+        }
+      }
+
+      function setStatus(text) {
+        statusText.textContent = `状態: ${text}`;
+      }
+
+      function stopListening() {
+        if (!listening) {
+          return;
+        }
+
+        window.removeEventListener("devicemotion", onDeviceMotion);
+        listening = false;
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        setStatus("停止中");
+      }
+
+      async function startListening() {
+        if (listening) {
+          return;
+        }
+
+        if (typeof DeviceMotionEvent === "undefined") {
+          setStatus("このブラウザは DeviceMotionEvent 非対応です");
+          return;
+        }
+
+        try {
+          if (typeof DeviceMotionEvent.requestPermission === "function") {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission !== "granted") {
+              setStatus(`権限未許可 (${permission})`);
+              return;
+            }
+          }
+
+          window.addEventListener("devicemotion", onDeviceMotion);
+          listening = true;
+          startButton.disabled = true;
+          stopButton.disabled = false;
+          setStatus("取得中");
+        } catch (error) {
+          setStatus(`開始失敗: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
+      startButton.addEventListener("click", startListening);
+      stopButton.addEventListener("click", stopListening);
+    </script>
+  </body>
+</html>

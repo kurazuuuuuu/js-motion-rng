@@ -1,7 +1,7 @@
 {
   "name": "js-motion-rng",
   "version": "1.0.0",
-  "description": "デバイスのモーションデータから疑似乱数を生成するやつ",
+  "description": "Hash device motion data with chaos-based preprocessing",
   "homepage": "https://github.com/kurazuuuuuu/js-motion-rng#readme",
   "bugs": {
     "url": "https://github.com/kurazuuuuuu/js-motion-rng/issues"
@@ -12,9 +12,25 @@
   },
   "license": "ISC",
   "author": "@kurazuuuuuu",
-  "type": "commonjs",
-  "main": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "motion-rng"
+    "test": "vitest run --browser",
+    "test:watch": "vitest --browser",
+    "test:ui": "vitest --browser --ui",
+    "example:serve": "vite examples/browser --open"
+  },
+  "devDependencies": {
+    "@vitest/browser": "^3.2.4",
+    "playwright": "^1.55.0",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.4"
   }
 }
