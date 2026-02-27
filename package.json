@@ -1,6 +1,6 @@
 {
   "name": "js-motion-rng",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Hash device motion data with chaos-based preprocessing",
   "homepage": "https://github.com/kurazuuuuuu/js-motion-rng#readme",
   "bugs": {
