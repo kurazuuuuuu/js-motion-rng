@@ -1,0 +1,20 @@
+{
+  "name": "js-motion-rng",
+  "version": "1.0.0",
+  "description": "デバイスのモーションデータから疑似乱数を生成するやつ",
+  "homepage": "https://github.com/kurazuuuuuu/js-motion-rng#readme",
+  "bugs": {
+    "url": "https://github.com/kurazuuuuuu/js-motion-rng/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kurazuuuuuu/js-motion-rng.git"
+  },
+  "license": "ISC",
+  "author": "@kurazuuuuuu",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "motion-rng"
+  }
+}
